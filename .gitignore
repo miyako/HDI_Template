@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# 4D runtime / user data
+Data/
+Logs/
+userPreferences.*
+
+# 4D derived/cache
+Project/DerivedData/
+
+# Documentation (auto-generated)
+Documentation/
+
+# Settings
+Settings/
