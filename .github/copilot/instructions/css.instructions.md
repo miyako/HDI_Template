@@ -25,6 +25,7 @@ description: "Rules for using CSS stylesheets in 4D projects — dark mode suppo
 - Use `"automaticAlternate"` for listbox alternate row fills instead of hardcoded near-white values like `#F8FCFF`.
 - When a column-level property is the **same** as the listbox-level property and there is only one column, remove the column-level override and define it at the listbox level only. Column-level properties are for overrides, not repetition.
 - Replace hardcoded `#000000` or `#FFFFFF` (or near-equivalents like `#212121`) in `stroke` for text and shape primitives with `"automatic"` **only if** you want them to adapt. If specific branded colours are needed, use CSS instead.
+- Form objects that **omit** `fill` or `stroke` entirely use a 4D-internal default, which is **not** the same as `"automatic"`. To ensure they adapt to dark mode, explicitly set `"fill": "automatic"` and/or `"stroke": "automatic"`. This is especially important for full-form background rectangles that rely on the implicit default fill.
 
 ---
 
@@ -226,7 +227,9 @@ When a listbox uses `"metaSource"` to dynamically style rows/cells with fill col
 
 ## 4D Method Token Reference
 
-When writing 4D methods with tokenised syntax (`:Cnnn`), use the correct command numbers:
+4D project mode source files may include token syntax (`:Cnnn` suffixes on commands). These tokens are **optional** — plain command names work correctly and 4D adds tokens automatically when it saves the file. **Never invent or guess token numbers**; an incorrect token silently resolves to the wrong command, causing hard-to-diagnose runtime errors. If unsure of a token, omit it entirely.
+
+Known correct tokens (for reference only — omitting them is always safe):
 
 | Command | Token | Notes |
 |---------|-------|-------|
@@ -234,7 +237,7 @@ When writing 4D methods with tokenised syntax (`:Cnnn`), use the correct command
 | `New object` | `:C1471` | Create a new object |
 | `Form` | `:C1466` | Access the form data object |
 
-**Common mistake**: `:C382` is `_O_REDRAW LIST` (obsolete), not `OBJECT GET RGB COLORS`. Always verify command tokens against the 4D documentation.
+**Common mistake**: `:C382` is `_O_REDRAW LIST` (obsolete), not `OBJECT GET RGB COLORS`. This is exactly why guessing tokens is dangerous — always verify against existing project code or omit the token.
 
 Command reference: https://developer.4d.com/docs/commands/
 
@@ -276,7 +279,8 @@ When choosing dark-mode equivalents, follow these principles:
 ## Checklist for Dark Mode Migration
 
 1. **Scan forms** for hardcoded `stroke` and `fill` colours on text and shape objects.
-2. **Replace** `#000000`/`#FFFFFF` with `"automatic"` where appropriate.
+2. **Scan forms** for objects that **omit** `fill` or `stroke` entirely — these use an internal default, not `"automatic"`. Add `"fill": "automatic"` or `"stroke": "automatic"` explicitly so they adapt to dark mode. Pay special attention to full-form background rectangles.
+3. **Replace** `#000000`/`#FFFFFF` with `"automatic"` where appropriate.
 3. **Replace** hardcoded `alternateFill` with `"automaticAlternate"`.
 4. **Remove** column-level properties that duplicate listbox-level values.
 5. **Move** branded/specific colours from `.4DForm` to CSS classes with media queries.

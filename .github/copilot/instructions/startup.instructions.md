@@ -288,13 +288,25 @@ Use `#DECLARE` for method parameters. Use `var` for local variables. The `C_*` c
 
 ## Token Syntax
 
-4D project mode source files use token syntax (e.g., `Count parameters:C259`, `New object:C1471`). When writing code:
+4D project mode source files use token syntax (e.g., `Count parameters:C259`, `New object:C1471`). Tokens are the `:CNNN` suffix on commands and `:KNN:NN` suffix on constants. 4D adds these automatically when it saves a method file.
 
-- Include command tokens: `CommandName:CNNN` (e.g., `DIALOG:C40`)
-- Include constant tokens: `ConstantName:KNNNN` (e.g., `Plain form window:K39:10`)
-- Include `True:C214` / `False:C215` / `Null:C1517` tokens for built-in constants
+### Rules for writing code
 
-Reference the existing code in the project for the correct token numbers.
+- **Token suffixes are optional.** Plain command and constant names (without any `:C` or `:K` suffix) work correctly. 4D resolves the name and adds the token on next save.
+- **Never invent or guess token numbers.** An incorrect token causes 4D to resolve to the **wrong command or constant**, producing silent runtime errors that are very difficult to diagnose. For example, writing `INVOKE ACTION:C1354(ak return to design mode:K39:43)` with made-up tokens actually calls a completely different command.
+- **If you are unsure of the correct token, omit it entirely.** `INVOKE ACTION(ak return to design mode)` is always safe. `INVOKE ACTION:C9999(...)` is dangerous.
+- **Copy tokens only from existing project code** that is known to be correct. Do not look up or calculate token numbers yourself.
+- `var` and `#DECLARE` are language keywords, not commands — they never take tokens.
+
+### Anti-Pattern
+
+```4d
+// WRONG — invented token numbers cause 4D to call the wrong command
+INVOKE ACTION:C1354(ak return to design mode:K39:43)
+
+// CORRECT — plain names, 4D resolves them
+INVOKE ACTION(ak return to design mode)
+```
 
 ---
 
@@ -315,6 +327,6 @@ Before considering the modernisation complete:
 - [ ] Button label says "Close" (not "Quit 4D") in error state
 - [ ] No obsolete version checks (v16 check removed)
 - [ ] No dead code (`$cr`, `Shift down`, etc.)
-- [ ] All token syntax is correct and present
+- [ ] All token syntax is correct (if tokens are included) or omitted entirely (never guess tokens)
 - [ ] All UI strings use `Localized string` with XLIFF keys (no hardcoded text)
 - [ ] XLIFF entries exist in all language `.lproj` folders
