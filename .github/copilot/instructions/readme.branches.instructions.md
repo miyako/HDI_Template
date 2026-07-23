@@ -117,6 +117,15 @@ Rules:
 
 ---
 
+## When the user supplies explicit content
+
+If the user provides exact branch names, descriptions, token counts, or table
+rows to insert, use them as given — do not re-query session stores or verify
+against remote branches. The verification workflow below applies only when
+regenerating from scratch without user-supplied data.
+
+---
+
 ## Workflow for regenerating these sections
 
 1. Query real session data for the repo (branch, summary, model(s), token

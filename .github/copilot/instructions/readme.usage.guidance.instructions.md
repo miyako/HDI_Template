@@ -87,6 +87,14 @@ After classifying each session, assign it to one of three categories:
 
 ### Writing the assessment
 
+**Single-session or few-session projects (fewer than 4 sessions):** Skip the
+3-subsection table structure below. Instead, write 1--2 paragraphs stating the
+task complexity tier, the model used, whether it was appropriate or overkill,
+and a one-line recommendation for future similar tasks. End with a bold
+`**Recommendation:**` line.
+
+**Projects with 4+ sessions:** Use the full structure below.
+
 Structure the assessment as three subsections with tables:
 
 ```markdown
