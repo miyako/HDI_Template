@@ -10,6 +10,20 @@ Starting with 4D 20 R7 (`compatibilityVersion >= 2070`), the `C_*` family of var
 
 ---
 
+## Token Safety (applies to every command touched during migration)
+
+4D project source may include `:CNNN` / `:KNN:NN` token suffixes on commands and constants. These are **optional** — plain names work correctly and 4D adds the token automatically on next save.
+
+- **Never invent, guess, or recall a token number.** An incorrect token silently resolves to a **different, real command**, not an error. This is true even when the token "looks right" or you are confident you remember it correctly — a mistaken memory is exactly as dangerous as a random guess, because 4D cannot tell the difference.
+- **Mandatory verification step, no exceptions:** before writing any token suffix, grep the actual project source files for that exact `CommandName:CNNN` (or `ConstantName:KNN:NN`) string.
+  - Match found → copy that verified token character-for-character.
+  - No match found → write the plain command/constant name with no token suffix at all.
+- Verifying one command's token in a file does not license guessing the token for a different command in that same statement, line, or file.
+- `var` and `#DECLARE` are language keywords, not commands — they never take tokens, tokened or otherwise.
+- If you are converting a line that already has a correct token (e.g. `C_LONGINT:C283`), you may drop the token entirely when rewriting to `var`/`#DECLARE`, since neither keyword uses one.
+
+---
+
 ## Determining Whether Migration Is Required
 
 Read the `compatibilityVersion` property from `Project/{ProjectName}.4DProject`:

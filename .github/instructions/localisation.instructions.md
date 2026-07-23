@@ -298,6 +298,10 @@ Reference: [Simplified commands for cleaner codebase](https://blog.4d.com/simpli
 
 The command token (e.g. `:C991`) remains the same regardless of version. However, **token suffixes are optional** — plain command names work correctly and 4D adds tokens automatically on save. Never invent or guess token numbers; an incorrect token silently resolves to the wrong command. If unsure, omit the token entirely.
 
+**Mandatory verification step — no exceptions, even from apparent memory/confidence:** before writing any `:CNNN` or `:KNN:NN` suffix, grep the actual project source files for that exact `CommandName:CNNN` (or `ConstantName:KNN:NN`) string.
+- Match found → copy that verified token character-for-character.
+- No match found → write the command/constant name with **no** token suffix. Do not substitute a token you "recall" being correct, one seen in another project, or one from general training knowledge — none of these are verified sources, and a confidently recalled wrong token is just as dangerous as a randomly invented one (a real incident: `Size of array:C267` was written from apparent memory without grepping first; `C267` was not that command's token, so 4D would have silently called a different command). Verifying one command's token does not license guessing another command's token in the same file or statement.
+
 ---
 
 ## XLIFF ID Naming Conventions

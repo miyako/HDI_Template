@@ -229,6 +229,10 @@ When a listbox uses `"metaSource"` to dynamically style rows/cells with fill col
 
 4D project mode source files may include token syntax (`:Cnnn` suffixes on commands). These tokens are **optional** — plain command names work correctly and 4D adds tokens automatically when it saves the file. **Never invent or guess token numbers**; an incorrect token silently resolves to the wrong command, causing hard-to-diagnose runtime errors. If unsure of a token, omit it entirely.
 
+**Mandatory verification step — no exceptions, even from apparent memory/confidence:** before writing any `:CNNN` or `:KNN:NN` suffix, grep the actual project source files for that exact `CommandName:CNNN` (or `ConstantName:KNN:NN`) string.
+- Match found → copy that verified token character-for-character.
+- No match found → write the command/constant name with **no** token suffix. Do not substitute a token you "recall" being correct, one seen in another project, or one from general training knowledge — none of these are verified sources, and a confidently recalled wrong token is just as dangerous as a randomly invented one. Verifying one command's token does not license guessing another command's token in the same file or statement.
+
 Known correct tokens (for reference only — omitting them is always safe):
 
 | Command | Token | Notes |

@@ -296,6 +296,10 @@ Use `#DECLARE` for method parameters. Use `var` for local variables. The `C_*` c
 - **Never invent or guess token numbers.** An incorrect token causes 4D to resolve to the **wrong command or constant**, producing silent runtime errors that are very difficult to diagnose. For example, writing `INVOKE ACTION:C1354(ak return to design mode:K39:43)` with made-up tokens actually calls a completely different command.
 - **If you are unsure of the correct token, omit it entirely.** `INVOKE ACTION(ak return to design mode)` is always safe. `INVOKE ACTION:C9999(...)` is dangerous.
 - **Copy tokens only from existing project code** that is known to be correct. Do not look up or calculate token numbers yourself.
+- **Mandatory verification step — no exceptions, even from apparent memory/confidence:** before writing any `:CNNN` or `:KNN:NN` suffix, grep the actual project source files for that exact `CommandName:CNNN` (or `ConstantName:KNN:NN`) string.
+  - If a match is found, copy that verified token character-for-character.
+  - If no match is found, write the command/constant name with **no** token suffix at all. Do not fall back on a token you "recall" being correct, a token seen in a different project, or a token from general training knowledge — none of these are verified sources. Recalled/half-remembered tokens are exactly as dangerous as invented ones, because 4D cannot tell the difference between a wrong guess and a wrong memory.
+  - This applies per-command: verifying one command in a file does not license guessing the token for a different command in the same statement or file.
 - `var` and `#DECLARE` are language keywords, not commands — they never take tokens.
 
 ### Anti-Pattern
@@ -307,6 +311,20 @@ INVOKE ACTION:C1354(ak return to design mode:K39:43)
 // CORRECT — plain names, 4D resolves them
 INVOKE ACTION(ak return to design mode)
 ```
+
+```4d
+// WRONG — a real incident: C267 was assumed to be "Size of array" from
+// memory/training data, without grepping the project first. C267 is
+// actually a different command's token, so this line silently called
+// the wrong command instead of "Size of array".
+For ($i; 1; Size of array:C267($windows))
+
+// CORRECT — "Size of array" had no verified occurrence anywhere in this
+// project's source, so the token is omitted entirely.
+For ($i; 1; Size of array($windows))
+```
+
+**Why this specific case matters:** the mistake was not a random invented number — the token "looked right" and was written with confidence. That is precisely what makes recalled/half-remembered tokens dangerous: they pass a casual read-through unnoticed. The only reliable defence is the mechanical grep-first rule above, applied every single time, regardless of how certain the token seems.
 
 ---
 
