@@ -121,6 +121,40 @@ Use CSS media queries in `styleSheets_mac.css` to set appropriate button heights
 }
 ```
 
+### Mandatory Audit Scope: Every Button in Every Form
+
+Button height is a project-wide concern, not a single-form concern. Before
+declaring this migration done, you **must** enumerate every button in
+**every** `form.4DForm` file in the project — not just the form you happen
+to be looking at, and not just the first button you notice.
+
+```
+grep -rn '"type": "button"' Project/Sources/Forms/ Project/Sources/TableForms/
+```
+
+For each match, check the enclosing object for a `height` (or `bottom`)
+property and a `class` property. A button is only "done" once **both**:
+
+1. `height`/`bottom` has been removed, and
+2. `"class": "default"` (or the appropriate class) has been added.
+
+**This was missed in practice**: an earlier pass added `"class": "default"`
+and removed `height` from `BtnDemo` on the `HDI` form, verified that no
+*other* object used that class yet, and stopped there — without checking
+whether *other buttons on other forms* (`HDI2`'s `btnHelloWorld`, `Button1`,
+`btnOpenListForm`, `btnOpenOutputJSON`, `btnOpenInputJSON`) needed the exact
+same treatment. Those five buttons kept their hardcoded `height: 20`/`21`
+and rendered as flat, square buttons under Liquid Glass while `BtnDemo`
+alone got the rounded look — an inconsistent, half-finished migration that
+went unnoticed because the search scope was one form instead of the whole
+project.
+
+**Rule:** "verified only `BtnDemo` uses this class" is not a stopping
+point — it is a prompt to go find every *other* button that should also use
+it. Grep the whole `Project/Sources/Forms/` and `Project/Sources/TableForms/`
+tree for `"type": "button"` and resolve every single hit before considering
+the task complete.
+
 ### Critical: CSS Specificity vs Form JSON
 
 Properties defined directly in the `.4DForm` JSON have **the highest specificity** and override CSS rules — unless the CSS uses `!important` (which is discouraged).
@@ -271,6 +305,26 @@ button.default {
 
 Creating a CSS rule for `button.default` but not adding `"class": "default"` to the button in the form JSON. The rule will not match.
 
+### ❌ Migrating only the first form/button you find
+
+```
+# WRONG — stopping after fixing one button on one form
+"BtnDemo" in HDI/form.4DForm → fixed
+(HDI2/form.4DForm never checked)
+```
+
+**Why:** This is exactly what happened in practice: `BtnDemo` on the `HDI`
+form was migrated (class added, height removed) and the change was verified
+by confirming no *other object* used the same class yet — but that
+verification was mistaken for "done" instead of "no other button uses this
+class **yet**, so go find the ones that should." Five buttons on the `HDI2`
+form (`btnHelloWorld`, `Button1`, `btnOpenListForm`, `btnOpenOutputJSON`,
+`btnOpenInputJSON`) were left with hardcoded `height` and no `class`,
+rendering flat/square while `BtnDemo` alone rendered rounded. Always grep
+`Project/Sources/Forms/` and `Project/Sources/TableForms/` for every
+`"type": "button"` project-wide before considering the migration complete —
+see "Mandatory Audit Scope" above.
+
 ---
 
 ## Disabling Liquid Glass (Merged Applications Only)
@@ -316,6 +370,7 @@ This retains the classic visual style while you adapt interfaces. This key has *
 
 When adapting a 4D project for Liquid Glass button support:
 
+- [ ] Ran `grep -rn '"type": "button"' Project/Sources/Forms/ Project/Sources/TableForms/` and accounted for **every** result across **every** form — not just the form initially in scope
 - [ ] `styleSheets_mac.css` exists in `Project/Sources/`
 - [ ] `@media (form-theme: liquid-glass)` rule sets `height: 27px` for target button class
 - [ ] `@media (form-theme: mac-classic)` rule sets `height: 23px` for target button class
