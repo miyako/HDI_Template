@@ -104,10 +104,26 @@ C_TEXT:C284($2)
 ```
 
 **Key points:**
-- `#DECLARE` must be the first non-comment, non-attribute line in the method.
+- `#DECLARE` must be the first non-comment, non-attribute line in the method — this includes coming before **any** executable statement, not just before other declarations. If the original `C_*($N)` line was preceded by executable code (e.g. `SET MENU BAR:C67(1)` before `C_TEXT:C284($1)`), the `#DECLARE` line must be moved above that code when migrating, not simply substituted in place.
 - **Numbered parameters (`$1`, `$2`, `$0`) are illegal in `#DECLARE`** — you must assign a named local variable (e.g., `$param1`, `$flag`).
 - `#DECLARE` replaces **all** `C_*($N)` declarations for that method.
 - For variadic methods, use `#DECLARE(... : Type)` with `Count parameters` and `${N}` notation, or `Copy parameters` to forward arguments to another method.
+
+**⚠️ Common ordering mistake:** Migrating in-place (replacing the `C_*($N)` line with `#DECLARE` at the same line position) is wrong if any executable statement appears earlier in the method. Always re-check the resulting file so that `#DECLARE` (and any `var` lines that follow it) sit directly under the `//%attributes` line, before all other code:
+
+```4d
+//%attributes = {}
+SET MENU BAR:C67(1)      // ❌ WRONG — executable code before C_* declarations
+C_TEXT:C284($1)
+```
+
+```4d
+//%attributes = {}
+#DECLARE($title : Text)  // ✅ CORRECT — #DECLARE moved above the executable code
+var $window : Integer
+
+SET MENU BAR:C67(1)
+```
 
 ### Rule 3: Return Values — `C_*($0)` → `#DECLARE` return syntax
 
@@ -288,6 +304,7 @@ grep -rn "^C_(LONGINT|TEXT|REAL|OBJECT|BOOLEAN|POINTER|BLOB|DATE|TIME|PICTURE|VA
 - [ ] `compatibilityVersion` confirmed `>= 2070` in `.4DProject`
 - [ ] All `C_*` local variable declarations replaced with `var`
 - [ ] All `C_*($N)` parameter declarations replaced with `#DECLARE`
+- [ ] `#DECLARE` placed above **all** executable statements in the method, not just in the position of the old `C_*` line
 - [ ] All `C_*($0)` return declarations converted to `#DECLARE->$name : Type`
 - [ ] All `$0:=` assignment lines removed where `#DECLARE` return syntax is used
 - [ ] `Compiler_Methods.4dm` cleaned of entries for methods now using `#DECLARE`
