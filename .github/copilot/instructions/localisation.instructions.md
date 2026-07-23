@@ -164,6 +164,28 @@ XLIFF files support two resolution mechanisms, and they **must not be mixed with
 
 ---
 
+## 4D Built-in Common Resources
+
+4D ships its own XLIFF files (`commonEN.xlf`, `commonJA.xlf`, etc.) inside the application bundle. These provide translations for standard UI elements. **Do not duplicate these in project-level XLIFF files.**
+
+### Common IDs provided by 4D (non-exhaustive)
+
+| Group | Example IDs |
+|-------|-------------|
+| Standard Menus | `CommonMenuFile`, `CommonMenuQuit`, `CommonMenuEdit`, `CommonMenuMode` |
+| Menu Items | `CommonMenuItemUndo`, `CommonMenuItemCut`, `CommonMenuItemCopy`, `CommonMenuItemPaste`, `CommonMenuItemClear`, `CommonMenuItemSelectAll`, `CommonMenuItemShowClipboard`, `CommonMenuItemQuit`, `CommonMenuItemDesign`, `CommonMenuRedo` |
+| Standard Buttons | `CommonOK`, `CommonCancel`, `CommonRetry`, `CommonQuit`, `CommonAdd`, `CommonDelete`, `CommonEdit`, `CommonDone`, `CommonApply`, `CommonCreate`, `CommonRemove`, `CommonOpen`, `CommonClose`, `CommonYes`, `CommonNo`, `CommonDuplicate`, `CommonRename`, `CommonPrint`, `CommonStop`, `CommonRestart` |
+| Obsolete Mode Labels | `ObsoleteModeDesign`, `ObsoleteModeUser`, `ObsoleteModeCreatedMenu` |
+| Boolean | `CommonTrue`, `CommonFalse` |
+
+These IDs are referenced via `:xliff:CommonMenuFile` in JSON or `Localized string:C991("CommonOK")` in code, and 4D resolves them from its built-in resources at runtime.
+
+> **Mistake to avoid:** Do not create project-level `<trans-unit>` entries for `Common*` IDs. They are already provided by 4D and adding duplicates may cause conflicts or unexpected behaviour.
+
+> **When to use Common IDs:** Prefer built-in Common IDs for standard menu items and button labels (File, Edit, OK, Cancel, etc.) rather than creating project-specific translations. This ensures consistency with the rest of the 4D UI.
+
+---
+
 ## What to Localise
 
 ### 1. Menus (`Sources/menus.json`)
