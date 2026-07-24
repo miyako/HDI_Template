@@ -269,6 +269,20 @@ After adding `#DECLARE` to a method, forgetting to remove the corresponding `C_*
 
 Similarly, `C_REAL` used for a variable that only holds whole numbers (e.g., a button value from a form object) should still be typed as `Real` if that is what the form object produces — 4D button values are `Real` by default.
 
+### ❌ Declaring typed arrays with `var`
+
+```4d
+var $windows : Array Integer   // WRONG
+```
+
+**Why:** In 4D, typed arrays are declared with the `ARRAY ...` commands, not with `var`.
+
+```4d
+ARRAY LONGINT($windows; 0)     // CORRECT
+```
+
+Use `var` for regular variables and `#DECLARE` for parameters/returns, but keep typed array declarations in the legacy `ARRAY` command family (`ARRAY LONGINT`, `ARRAY TEXT`, `ARRAY OBJECT`, etc.).
+
 ---
 
 ## Audit Procedure

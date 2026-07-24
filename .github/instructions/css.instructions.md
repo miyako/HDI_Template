@@ -255,6 +255,25 @@ Command reference: https://developer.4d.com/docs/commands/
 - Do **not** repeat the same `alternateFill` at the column level unless it is a deliberate column-specific override.
 - Remove column-level `alternateFill` if it matches the listbox-level value (it adds no value and creates maintenance burden).
 
+### Odd-row (`fill`) colour with light/dark variants
+
+If you want a custom odd-row background (instead of fully automatic), do it via CSS classes and media queries:
+
+1. Assign a class to the listbox in `form.4DForm` (for example, `"class": "hdi-list"`).
+2. Remove JSON `fill` from the listbox and its columns so CSS can apply (JSON wins on specificity).
+3. Keep `alternateFill` as `"automaticAlternate"` for even rows.
+4. Define light/dark odd-row colours in `styleSheets.css`:
+
+```css
+@media (prefers-color-scheme: light) {
+  .hdi-list { fill: #FDFED3; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .hdi-list { fill: #3A2F1F; }
+}
+```
+
 ### Meta Source Colours
 
 - Never hardcode light-mode-only colours in meta source methods.
@@ -288,10 +307,11 @@ When choosing dark-mode equivalents, follow these principles:
 3. **Replace** hardcoded `alternateFill` with `"automaticAlternate"`.
 4. **Remove** column-level properties that duplicate listbox-level values.
 5. **Move** branded/specific colours from `.4DForm` to CSS classes with media queries.
-6. **Add** hidden reference rectangles for any runtime colour logic (meta expressions, programmatic styling).
-7. **Create** `styleSheets.css` if it doesn't exist; define both `light` and `dark` media query blocks.
-8. **Verify** no inline `.4DForm` property is overriding your CSS (specificity rule).
-9. **Test** by toggling system appearance in System Preferences / Settings.
+6. **For listboxes with custom odd-row colour**, set class-based `fill` in light/dark CSS and keep `alternateFill: "automaticAlternate"`.
+7. **Add** hidden reference rectangles for any runtime colour logic (meta expressions, programmatic styling).
+8. **Create** `styleSheets.css` if it doesn't exist; define both `light` and `dark` media query blocks.
+9. **Verify** no inline `.4DForm` property is overriding your CSS (specificity rule).
+10. **Test** by toggling system appearance in System Preferences / Settings.
 
 ---
 

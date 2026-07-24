@@ -284,6 +284,12 @@ $maintext:=Localized string("ErrorViewProMain")
 
 Use `#DECLARE` for method parameters. Use `var` for local variables. The `C_*` commands are deprecated.
 
+**Array exception:** Typed arrays are still declared with `ARRAY` commands, not `var`:
+
+```4d
+ARRAY LONGINT($windows; 0)   // correct for window ID arrays
+```
+
 ---
 
 ## Token Syntax
