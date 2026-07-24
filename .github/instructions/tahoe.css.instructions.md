@@ -105,21 +105,33 @@ Many legacy forms use hardcoded button heights of 20px or 23px. These render as 
 
 ### The Fix
 
-Use CSS media queries in `styleSheets_mac.css` to set appropriate button heights per theme:
+Use CSS media queries in `styleSheets_mac.css` to set appropriate button heights per theme. Define height on **both** the class-only selector (`.default`) and the compound type+class selector (`button.default`):
 
 ```css
 @media (form-theme: liquid-glass) {
+    .default {
+        height: 27px;
+    }
+
     button.default {
         height: 27px;
     }
 }
 
 @media (form-theme: mac-classic) {
+    .default {
+        height: 23px;
+    }
+
     button.default {
         height: 23px;
     }
 }
 ```
+
+**Why both selectors?** In practice, 4D's CSS engine may not always match a compound `button.default` selector at runtime, even when the form object is clearly a button. Using the class-only `.default` selector as a fallback ensures the height rule is applied reliably. The compound `button.default` selector is kept for specificity when other object types also use the `default` class but should not receive button sizing.
+
+**This was discovered in practice**: the HDI2 page 3 button had `"class": "default"` and no `height` in the form JSON, but at runtime it rendered as a flat, square button because only `button.default` was defined in the CSS. Adding `.default` alongside it fixed the issue immediately.
 
 ### Mandatory Audit Scope: Every Button in Every Form
 
@@ -305,6 +317,17 @@ button.default {
 
 Creating a CSS rule for `button.default` but not adding `"class": "default"` to the button in the form JSON. The rule will not match.
 
+### ❌ Using only the compound `button.default` selector
+
+```css
+/* WRONG — may not match at runtime */
+@media (form-theme: liquid-glass) {
+    button.default { height: 27px; }
+}
+```
+
+**Why:** 4D's CSS engine may not reliably match the compound `button.default` selector for all button objects at runtime, even when the form object type is `"button"`. Always define height on **both** `.default` and `button.default` to ensure the rule applies.
+
 ### ❌ Migrating only the first form/button you find
 
 ```
@@ -372,8 +395,8 @@ When adapting a 4D project for Liquid Glass button support:
 
 - [ ] Ran `grep -rn '"type": "button"' Project/Sources/Forms/ Project/Sources/TableForms/` and accounted for **every** result across **every** form — not just the form initially in scope
 - [ ] `styleSheets_mac.css` exists in `Project/Sources/`
-- [ ] `@media (form-theme: liquid-glass)` rule sets `height: 27px` for target button class
-- [ ] `@media (form-theme: mac-classic)` rule sets `height: 23px` for target button class
+- [ ] `@media (form-theme: liquid-glass)` rule sets `height: 27px` for **both** `.default` and `button.default`
+- [ ] `@media (form-theme: mac-classic)` rule sets `height: 23px` for **both** `.default` and `button.default`
 - [ ] All target buttons in `form.4DForm` have `"class"` assigned (e.g., `"default"`)
 - [ ] `height` property removed from target buttons in `form.4DForm`
 - [ ] `bottom` property removed from target buttons in `form.4DForm` (if present)
