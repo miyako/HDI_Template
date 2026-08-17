@@ -2,7 +2,7 @@
 description: "Rules for converting synchronous AI Kit code to asynchronous implementations — streaming support, display responses token-by-token as they arrive in text input or web area"
 ---
 
-# Synchronous AI Kit to Asynchronous Implementation — Agent Instructions
+# 4D AI Kit Asynchronous Callbacks — Agent Instructions
 
 ## Objective
 
