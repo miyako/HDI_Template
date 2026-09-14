@@ -283,6 +283,63 @@ ARRAY LONGINT($windows; 0)     // CORRECT
 
 Use `var` for regular variables and `#DECLARE` for parameters/returns, but keep typed array declarations in the legacy `ARRAY` command family (`ARRAY LONGINT`, `ARRAY TEXT`, `ARRAY OBJECT`, etc.).
 
+### ❌ Re-declaring a variable that is already a form object's `dataSource`
+
+```4d
+// Compiler_Variables.4dm
+C_REAL:C285(rb1)   // or var rb1 : Real
+```
+
+```json
+// form.4DForm — rb1 is the dataSource of a radio button
+"dataSource": "rb1"
+```
+
+**Why this is wrong:** a variable bound as the `dataSource` of a form object (button, radio, input, tab, etc.) is auto-declared and typed by the form itself. Declaring the same name again in `Compiler_Variables.4dm` (via `C_*` or `var`) produces a **"Redefinition of variable" (520.19)** compiler warning, even though the type matches.
+
+**Fix:** before migrating a name in `Compiler_Variables.4dm`, grep every `form.4DForm` for `"dataSource": "<name>"`. If found, remove the explicit process-variable declaration entirely and rely on the form binding. Only keep explicit declarations for variables that are **not** form-bound (e.g. a variable only ever assigned from method code).
+
+### ❌ Assigning a scalar to a name that is declared/used elsewhere as an array
+
+```4d
+// Compiler_Arrays.4dm
+ARRAY TEXT:C222(TabControl; 0)
+
+// initHDI.4dm
+COLLECTION TO ARRAY:C1562($json; TabControl; "Title"; TextTabControl; "Text")
+TabControl:=0   // WRONG — collides with the array declaration above
+```
+
+**Why:** 4D does not allow a name to be both an array and a scalar. This also produces a **"Redefinition of variable"** warning, but the root cause is a genuine logic bug (leftover code from before the name was repurposed as an array), not a directive-syntax issue — converting `C_*`/`ARRAY` syntax alone will not fix it.
+
+**Fix:** before migrating, grep every assignment site (`<name>:=`) and every declaration site (`ARRAY ...(<name>...)` / `C_*(<name>)`) for the same identifier across the whole project. If a name is used both as a scalar and as an array anywhere, that is a pre-existing bug — resolve the conflicting assignment (usually by deleting dead/leftover code) rather than silently picking one type.
+
+### ❌ Redeclaring the same local variable in multiple branches of one method
+
+```4d
+If (Count parameters=0)
+	var $window : Integer
+	...
+Else 
+	var $window : Integer   // WRONG — "Redefinition of variable $window"
+	...
+End if 
+```
+
+**Why:** `var` declarations are scoped to the **whole method**, not to the `If`/`Else` block they appear in — unlike block-scoped languages. Declaring the same name in two branches is a redefinition even though the branches are mutually exclusive at runtime.
+
+**Fix:** declare the variable exactly once, before the branching logic that uses it in more than one branch:
+
+```4d
+var $window : Integer
+
+If (Count parameters=0)
+	...
+Else 
+	$window:=Open form window(...)
+End if 
+```
+
 ---
 
 ## Audit Procedure
@@ -336,11 +393,14 @@ grep -rn "^C_(LONGINT|TEXT|REAL|OBJECT|BOOLEAN|POINTER|BLOB|DATE|TIME|PICTURE|VA
 - [ ] All `C_*($0)` return declarations converted to `#DECLARE->$name : Type`
 - [ ] All `$0:=` assignment lines removed where `#DECLARE` return syntax is used
 - [ ] `Compiler_Methods.4dm` cleaned of entries for methods now using `#DECLARE`
-- [ ] `Compiler_Variables.4dm` converted from `C_*` to `var` declarations
+- [ ] `Compiler_Variables.4dm` converted from `C_*` to `var` declarations, with declarations removed for any name that is also a form object's `dataSource`
+- [ ] No name is used both as a scalar (`name:=...`) and as an array (`ARRAY ...(name;...)`) anywhere in the project
+- [ ] No variable is declared with `var` in more than one branch of the same method (declare once above the branching logic if reused across branches)
 - [ ] No non-variable arguments passed to any remaining `C_*` calls (e.g., `0` instead of `$0`)
 - [ ] Type mapping is correct (`C_LONGINT` → `Integer`, `C_REAL` → `Real`, etc.)
 - [ ] No mixing of `#DECLARE` and `C_*($N)` in the same method
 - [ ] `var` and `#DECLARE` do **not** include command tokens (they are keywords, not commands)
+- [ ] If a 4D compiler check/error log is available, re-run it after migration and confirm zero "Redefinition of variable" and "type is unknown" issues remain — converting all `C_*` syntax is not sufficient proof the migration is correct
 
 ---
 

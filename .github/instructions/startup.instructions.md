@@ -74,6 +74,8 @@ End if
 | Empty window title as identifier | Set the splash window title to an empty string (or a known constant) to identify it later. |
 | Pass `{}` or `New object` to `CALL WORKER` | This satisfies the parameter requirement so the `Else` branch executes. Use `{}` (shorthand for `New object`) or `New object`. |
 
+> **Note on `$window` scope:** in the pattern above, `$window` is declared exactly **once**, inside the `If` branch's `For` loop, and then reused in the `Else` branch without a second declaration. This is intentional and correct — 4D `var` declarations are method-scoped, not block-scoped, so declaring `var $window : Integer` again in the `Else` branch (even though it looks like a "different" local from a block-scoped-language habit) produces a **"Redefinition of variable" (550.10)** compiler warning. If your implementation reuses a variable across both branches, declare it once above the `If`/`Else`, not inside each branch.
+
 ---
 
 ## Architecture: The Demo Button (BtnDemo)
