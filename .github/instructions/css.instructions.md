@@ -229,6 +229,13 @@ $result:="#"+$hex
 
 When a listbox uses `"metaSource"` to dynamically style rows/cells with fill colours, those colours are hardcoded strings. Use the hidden-rectangle technique to resolve theme-appropriate colours at form load time, then build the meta objects with those resolved values.
 
+**This is easy to miss with a form-JSON-only audit.** A listbox's `rowFillSource` / `rowStrokeSource` / `rowStyleSource` properties (in `.4DForm`) just name an array or variable — the actual hardcoded colours live in `.4dm` method code (e.g. `_FontBackground{$i}:=0x00FFFFFF`), often in more than one file (an `On Load` initializer and a selection/refresh handler that has to stay in sync with it). A pure `grep`/scan of `.4DForm` for `fill`/`stroke` properties will never surface these. Always additionally:
+
+1. `grep -rn "rowFillSource\|rowStrokeSource\|rowStyleSource" Project/Sources/Forms/` to find every listbox using a meta-expression.
+2. For each hit, note the array/variable name(s) referenced.
+3. `grep -rn` that exact name across **all** `.4dm` files (form method, object methods) to find every assignment site — there is often more than one (initial load vs. a change/refresh event).
+4. If any assignment hardcodes an RGB/hex literal, replace it with a value resolved from a hidden reference rectangle (see above), and make sure every assignment site uses the same resolved variable so they can't drift out of sync.
+
 ---
 
 ## 4D Method Token Reference
@@ -285,6 +292,7 @@ If you want a custom odd-row background (instead of fully automatic), do it via 
 - Never hardcode light-mode-only colours in meta source methods.
 - Use the hidden-rectangle reference technique described above.
 - White text (`#FFFFFF`) on a coloured background (e.g., red `#FF4040`) is acceptable in both modes because the cell fill provides contrast.
+- Do not stop at checking one assignment site. If a listbox's meta-source array is populated both on form load and on a selection-change/refresh event, both sites must resolve colours the same way (both via the hidden-rectangle technique, sharing the same resolved variables) — fixing only the load-time initializer and leaving a refresh handler with hardcoded hex reintroduces the bug the moment the user interacts with the listbox.
 
 ---
 
@@ -307,14 +315,14 @@ When choosing dark-mode equivalents, follow these principles:
 
 ## Checklist for Dark Mode Migration
 
-1. **Scan forms** for hardcoded `stroke` and `fill` colours on text and shape objects — restrict this to `form.4DForm`/CSS property values, not colour-looking hex codes inside JSON/HTML/rich-text *content* fields (see scope note above).
+1. **Scan forms** for hardcoded `stroke` and `fill` colours across **every** object type, not just shapes — a `text` object's `fill` is its background and is just as easy to leave hardcoded as a rectangle's; check `stroke` and `fill` independently on each object since one can be `"automatic"` while the other is still a fixed hex value. Restrict this to `form.4DForm`/CSS property values, not colour-looking hex codes inside JSON/HTML/rich-text *content* fields (see scope note above).
 2. **Scan forms** for objects that **omit** `fill` or `stroke` entirely — these use an internal default, not `"automatic"`. Add `"fill": "automatic"` or `"stroke": "automatic"` explicitly so they adapt to dark mode. Pay special attention to full-form background rectangles.
 3. **Replace** `#000000`/`#FFFFFF` with `"automatic"` where appropriate.
 3. **Replace** hardcoded `alternateFill` with `"automaticAlternate"`.
 4. **Remove** column-level properties that duplicate listbox-level values.
 5. **Move** branded/specific colours from `.4DForm` to CSS classes with media queries.
 6. **For listboxes with custom odd-row colour**, set class-based `fill` in light/dark CSS and keep `alternateFill: "automaticAlternate"`.
-7. **Add** hidden reference rectangles for any runtime colour logic (meta expressions, programmatic styling).
+7. **Add** hidden reference rectangles for any runtime colour logic (meta expressions, programmatic styling). Do not rely on a `.4DForm`-only scan to find these: `grep -rn "rowFillSource\|rowStrokeSource\|rowStyleSource"` across all forms, then `grep -rn` each referenced array/variable name across all `.4dm` files to find every assignment site (there is often more than one, e.g. load-time init plus a refresh/selection-change handler) and confirm none hardcode theme-specific RGB/hex.
 8. **Create** `styleSheets.css` if it doesn't exist; define both `light` and `dark` media query blocks.
 9. **Verify** no inline `.4DForm` property is overriding your CSS (specificity rule).
 10. **Test** by toggling system appearance in System Preferences / Settings.
