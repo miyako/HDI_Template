@@ -1,6 +1,6 @@
 # HDI_Template
 
-A 4D {version} **HDI** (How Do I) binary database demonstrating {description}, converted to a 4D project using 4D 21. The codebase was then updated and cleaned up with the help of **GitHub Copilot**.
+A 4D {version} **HDI** (How Do I) binary database converted to a 4D project using 4D 21. The codebase was then updated and cleaned up with the help of **GitHub Copilot**.
 
 ## Origin
 
