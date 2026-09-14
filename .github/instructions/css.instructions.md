@@ -27,6 +27,12 @@ description: "Rules for using CSS stylesheets in 4D projects — dark mode suppo
 - Replace hardcoded `#000000` or `#FFFFFF` (or near-equivalents like `#212121`) in `stroke` for text and shape primitives with `"automatic"` **only if** you want them to adapt. If specific branded colours are needed, use CSS instead.
 - Form objects that **omit** `fill` or `stroke` entirely use a 4D-internal default, which is **not** the same as `"automatic"`. To ensure they adapt to dark mode, explicitly set `"fill": "automatic"` and/or `"stroke": "automatic"`. This is especially important for full-form background rectangles that rely on the implicit default fill.
 
+### ⚠️ Scope: `"automatic"` is a form-object CSS property value, not an HTML/rich-text colour
+
+`"automatic"` and `"automaticAlternate"` are only meaningful as the value of a `fill`/`stroke`/`alternateFill` **property on a form object or CSS class** (in `form.4DForm`, `styleSheets*.css`). They are **not** valid inside inline HTML/rich-text markup such as `<span style="color:#000000">` embedded in JSON sample data, area/4D Write Pro content, or any other string that is rendered by an HTML/rich-text parser rather than 4D's own form-CSS engine.
+
+A real mistake to avoid: a project-wide grep-and-replace for hardcoded hex colours accidentally rewrote `color:#000000`/`color:#01168B` inside `<span style="color:...">` tags in `Resources/*.json` sample text (data consumed by a styled-text/rich-text area, not a form object) to `color:automatic`. This silently breaks rendering, since `automatic` is not a real CSS/HTML colour keyword outside 4D's own form styling. Before replacing any hardcoded colour, confirm the string is a `.4DForm`/CSS property value, not the *content* of a JSON/text/HTML field that merely happens to contain colour-looking hex codes.
+
 ---
 
 ## CSS Stylesheets in 4D
@@ -301,7 +307,7 @@ When choosing dark-mode equivalents, follow these principles:
 
 ## Checklist for Dark Mode Migration
 
-1. **Scan forms** for hardcoded `stroke` and `fill` colours on text and shape objects.
+1. **Scan forms** for hardcoded `stroke` and `fill` colours on text and shape objects — restrict this to `form.4DForm`/CSS property values, not colour-looking hex codes inside JSON/HTML/rich-text *content* fields (see scope note above).
 2. **Scan forms** for objects that **omit** `fill` or `stroke` entirely — these use an internal default, not `"automatic"`. Add `"fill": "automatic"` or `"stroke": "automatic"` explicitly so they adapt to dark mode. Pay special attention to full-form background rectangles.
 3. **Replace** `#000000`/`#FFFFFF` with `"automatic"` where appropriate.
 3. **Replace** hardcoded `alternateFill` with `"automaticAlternate"`.
