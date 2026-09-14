@@ -10,8 +10,4 @@ This project started as a binary `.4DB` example database originally distributed 
 
 - **Original download:** 
 
-## Branches
-
-## Copilot Token Usage
-
 ## Screenshots
