@@ -283,6 +283,85 @@ ARRAY LONGINT($windows; 0)     // CORRECT
 
 Use `var` for regular variables and `#DECLARE` for parameters/returns, but keep typed array declarations in the legacy `ARRAY` command family (`ARRAY LONGINT`, `ARRAY TEXT`, `ARRAY OBJECT`, etc.).
 
+### ❌ Re-declaring a variable that is already a form object's `dataSource` — but only if it is *never referenced in method code*
+
+```4d
+// Compiler_Variables.4dm
+C_REAL:C285(rb1)   // or var rb1 : Real
+```
+
+```json
+// form.4DForm — rb1 is the dataSource of a radio button
+"dataSource": "rb1"
+```
+
+**Why this is wrong:** a variable bound as the `dataSource` of a form object (button, radio, input, tab, etc.) *and never referenced anywhere in method code* is auto-typed by the form itself. Declaring it again in `Compiler_Variables.4dm` (via `C_*` or `var`) produces a **"Redefinition of variable" (520.19)** compiler warning, even though the type matches.
+
+**⚠️ Critical qualifier — this rule does NOT apply once the variable is used in method code.** If the same form-bound variable is also read or assigned inside any `.4dm` method (e.g. `vRow:=1`, `LISTBOX SET ROW HEIGHT(*; "LB0"; vRow; vHeight)`), the compiler cannot infer its type from code alone and will instead report **"The variable X has not been explicitly declared in the typing methods (Compiler...)"** if the declaration is missing. This is the opposite-looking error from the redefinition warning, and it is easy to "fix" the wrong way by removing all form-bound declarations indiscriminately — that was a real regression: a prior pass swept every `Compiler_Variables.4dm` entry that matched a `dataSource` name, which broke compilation for the subset that were also referenced in code.
+
+**Fix — verify both directions before touching `Compiler_Variables.4dm`:**
+1. Grep every `form.4DForm` for `"dataSource": "<name>"` to find form-bound variables.
+2. For each one, grep all `.4dm` files for uses of that exact name **outside** the form JSON (assignments or reads in method bodies, not just the dataSource binding itself).
+3. **Referenced only via `dataSource`, never in code** → remove/omit the explicit declaration; rely on the form binding.
+4. **Referenced in method code too** → keep (or restore) an explicit `var Name : Type` declaration in `Compiler_Variables.4dm`. This is not a contradiction of the "form binding types it" rule — the form binding alone is insufficient once code elsewhere needs to resolve the type independently of the form loading.
+5. After changing `Compiler_Variables.4dm`, re-run the compiler check (or re-grep) and confirm neither warning appears: no "Redefinition of variable" for the untouched cases, and no "not been explicitly declared" for the ones referenced in code.
+
+### ❌ Leaving a local variable used across `If`/`Else` branches or reused patterns undeclared
+
+```4d
+If (Get database localization:C1009(Current localization:K5:22)="ja")
+	$json:=JSON Parse:C1218(...)   // WRONG — $json never declared with var
+Else 
+	$json:=JSON Parse:C1218(...)
+End if 
+COLLECTION TO ARRAY:C1562($json; ...)
+```
+
+**Why:** local variables (`$name`) need an explicit `var $name : Type` just as much as process variables — a local only ever assigned inside conditional branches is easy to miss because it "looks" declared by virtue of being assigned. The compiler reports **"The variable $JSON has not been explicitly declared..."** if this is skipped.
+
+**Fix:** add `var $json : Collection` (or the appropriate type) once, near the top of the method, before any branch that assigns it — the same method-scoped placement rule as any other local.
+
+### ❌ Assigning a scalar to a name that is declared/used elsewhere as an array
+
+```4d
+// Compiler_Arrays.4dm
+ARRAY TEXT:C222(TabControl; 0)
+
+// initHDI.4dm
+COLLECTION TO ARRAY:C1562($json; TabControl; "Title"; TextTabControl; "Text")
+TabControl:=0   // WRONG — collides with the array declaration above
+```
+
+**Why:** 4D does not allow a name to be both an array and a scalar. This also produces a **"Redefinition of variable"** warning, but the root cause is a genuine logic bug (leftover code from before the name was repurposed as an array), not a directive-syntax issue — converting `C_*`/`ARRAY` syntax alone will not fix it.
+
+**Fix:** before migrating, grep every assignment site (`<name>:=`) and every declaration site (`ARRAY ...(<name>...)` / `C_*(<name>)`) for the same identifier across the whole project. If a name is used both as a scalar and as an array anywhere, that is a pre-existing bug — resolve the conflicting assignment (usually by deleting dead/leftover code) rather than silently picking one type.
+
+### ❌ Redeclaring the same local variable in multiple branches of one method
+
+```4d
+If (Count parameters=0)
+	var $window : Integer
+	...
+Else 
+	var $window : Integer   // WRONG — "Redefinition of variable $window"
+	...
+End if 
+```
+
+**Why:** `var` declarations are scoped to the **whole method**, not to the `If`/`Else` block they appear in — unlike block-scoped languages. Declaring the same name in two branches is a redefinition even though the branches are mutually exclusive at runtime.
+
+**Fix:** declare the variable exactly once, before the branching logic that uses it in more than one branch:
+
+```4d
+var $window : Integer
+
+If (Count parameters=0)
+	...
+Else 
+	$window:=Open form window(...)
+End if 
+```
+
 ---
 
 ## Audit Procedure
@@ -336,11 +415,15 @@ grep -rn "^C_(LONGINT|TEXT|REAL|OBJECT|BOOLEAN|POINTER|BLOB|DATE|TIME|PICTURE|VA
 - [ ] All `C_*($0)` return declarations converted to `#DECLARE->$name : Type`
 - [ ] All `$0:=` assignment lines removed where `#DECLARE` return syntax is used
 - [ ] `Compiler_Methods.4dm` cleaned of entries for methods now using `#DECLARE`
-- [ ] `Compiler_Variables.4dm` converted from `C_*` to `var` declarations
+- [ ] `Compiler_Variables.4dm` converted from `C_*` to `var` declarations, with declarations removed **only** for form-`dataSource` names that are never referenced in any method code — declarations are kept/restored for form-bound names that are also read or assigned in `.4dm` code
+- [ ] Every local variable (`$name`) assigned only inside `If`/`Else`/`Case of` branches (e.g. a `$json` populated per-localization branch) has an explicit `var $name : Type` declared once, above the branching logic
+- [ ] No name is used both as a scalar (`name:=...`) and as an array (`ARRAY ...(name;...)`) anywhere in the project
+- [ ] No variable is declared with `var` in more than one branch of the same method (declare once above the branching logic if reused across branches)
 - [ ] No non-variable arguments passed to any remaining `C_*` calls (e.g., `0` instead of `$0`)
 - [ ] Type mapping is correct (`C_LONGINT` → `Integer`, `C_REAL` → `Real`, etc.)
 - [ ] No mixing of `#DECLARE` and `C_*($N)` in the same method
 - [ ] `var` and `#DECLARE` do **not** include command tokens (they are keywords, not commands)
+- [ ] If a 4D compiler check/error log is available, re-run it after migration and confirm zero "Redefinition of variable" and "type is unknown" issues remain — converting all `C_*` syntax is not sufficient proof the migration is correct
 
 ---
 

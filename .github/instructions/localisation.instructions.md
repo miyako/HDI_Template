@@ -111,6 +111,10 @@ Use XLIFF 1.2 format. Each `.xlf` file lives inside the appropriate `Resources/{
 </xliff>
 ```
 
+### Line breaks inside multi-line strings
+
+4D source text (alert messages, multi-line labels, etc.) uses `\r` (carriage return, `Char(13)`) as its internal line-break convention, not `\n`. When a literal string being replaced contains an embedded line break, preserve the exact byte — inspect the original `.4dm`/`.4DForm` bytes (e.g. `xxd` or a hex-aware view) rather than assuming `\n`, and reproduce the same `\r` byte inside the XLIFF `<source>`/`<target>` text. Silently normalising to `\n` will change the rendered text's line breaks at runtime.
+
 ### XLIFF file naming convention
 
 File names **must** include a capitalised language code suffix before the extension:

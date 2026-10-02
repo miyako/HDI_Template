@@ -129,6 +129,12 @@ Delete the file. Use `"action": "quit"` instead.
 
 After removing `"method"` from the menu item, always delete the corresponding `.4dm` file. Orphaned methods clutter the project.
 
+### ❌ Leaving stale references in `folders.json`
+
+Deleting a wrapper method's `.4dm` file is not enough — 4D project mode also tracks method organisation in `Project/Sources/folders.json` (the Explorer folder layout). If the deleted method's name is still listed there, the project references a file that no longer exists.
+
+**Fix:** after deleting a method file, grep the whole project for its name (e.g. `grep -rn "m_Quit"`) and remove any remaining reference, including its entry in `folders.json`'s `"methods"` array.
+
 ### ❌ Removing shortcut properties
 
 When replacing `"method"` with `"action"`, preserve all existing properties like `"shortcutAccel"`, `"shortcutKey"`, `"title"`, etc. Only the `"method"` key is replaced by `"action"`.
@@ -140,6 +146,7 @@ When replacing `"method"` with `"action"`, preserve all existing properties like
 - [ ] All menu items in `menus.json` audited for method wrappers
 - [ ] Single-command wrapper methods replaced with `"action"` property
 - [ ] Wrapper `.4dm` files deleted from `Project/Sources/Methods/`
+- [ ] Deleted method names no longer appear anywhere in the project, including `folders.json`
 - [ ] Remaining `"method"` references point to methods with real logic
 - [ ] All other menu item properties preserved (title, shortcuts, etc.)
 - [ ] No orphaned method files left behind

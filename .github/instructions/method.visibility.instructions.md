@@ -10,6 +10,8 @@ In 4D, every project method is visible in the **Run > Method…** dialog by defa
 
 The `invisible` attribute controls whether a method appears in this dialog. Setting it to `true` hides the method from the Run dialog while keeping it fully accessible to other methods, forms, and programmatic callers.
 
+> **Combine with variable-declaration audits:** methods that need `#DECLARE` parameters (see variable-declarations instructions) are, almost by definition, subroutines that cannot run standalone from the Run dialog — a method with required `#DECLARE` parameters will error if invoked with no arguments. When auditing either concern, check the other at the same time: a method just migrated to `#DECLARE($param : ...)` is a strong signal it should also be marked `invisible`, and vice versa.
+
 ---
 
 ## When to Make a Method Invisible
