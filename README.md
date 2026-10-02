@@ -66,6 +66,4 @@ Each branch represents a distinct modernisation effort, guided by a correspondin
 - Original download: [{file}.zip]({download url})
 - Index of v16/v17 HDIs: [miyako/4d-hdi](https://github.com/miyako/4d-hdi)
 
-## Screenshots
-
 <!-- Paste GitHub-hosted <img> tags here. -->
