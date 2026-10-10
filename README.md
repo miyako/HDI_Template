@@ -11,7 +11,9 @@ order below. The README is written for a developer who lands on the repo
 looking for insight into a 4D feature -- not for the maintainer. Nothing about
 Copilot models, token cost, session history, or prompts belongs in it.
 
-Authoring rules live in .github/instructions/readme.structure.instructions.md.
+Authoring rules: .github/instructions/readme.structure.instructions.md (whole README)
+and .github/instructions/readme.branches.instructions.md (Modernisation notes table).
+Agents start from AGENTS.md.
 -->
 
 {One sentence: what 4D feature this demo showcases.} Originally published by 4D as a **HDI** (*How Do I*) example for **4D {version}**; converted from the binary `.4DB` to the `.4DProject` architecture with 4D 21 so it runs on current 4D releases.
@@ -53,11 +55,18 @@ button and a blog link. The form named `HDI2` is usually the real demo.
 
 ## Modernisation notes
 
-Each branch represents a distinct modernisation effort, guided by a corresponding Copilot instruction file.
+<!--
+One row per modernisation branch that exists on the remote, oldest first. Guidance links either the skill
+(https://github.com/miyako/skills/tree/main/4d-skills/skills/{skill}) or the repository instruction file.
+Restored (not converted) repositories omit this section.
+-->
 
-| Branch | Description | Instructions |
-|--------|-------------|--------------|
-| [`{branch}`](../../tree/{branch}) | {one-line description of the effort} | [{file}.instructions.md](.github/instructions/{file}.instructions.md) |
+Each branch represents a distinct modernisation effort, guided by a 4D skill or a repository instruction file.
+
+| Branch | Description | Guidance |
+|--------|-------------|----------|
+| [`{branch}`](../../tree/{branch}) | {one-line description of the effort} | [`{skill}`](https://github.com/miyako/skills/tree/main/4d-skills/skills/{skill}) |
+| [`{branch}`](../../tree/{branch}) | {one-line description of the effort} | [`4dstartup`](https://github.com/miyako/skills/tree/main/4d-skills/skills/4dstartup), [hdi.startup.instructions.md](.github/instructions/hdi.startup.instructions.md) |
 
 ## References
 

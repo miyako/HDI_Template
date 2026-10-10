@@ -1,5 +1,6 @@
 ---
 description: "Uniform README structure for HDI example repositories - developer-facing feature guides covering what the demo shows, key 4D commands, how the code works, points of interest, and references; excludes all Copilot model/token/session content"
+applyTo: "README.md"
 ---
 
 # Uniform README specification for `4d-hdi` repositories
@@ -48,11 +49,14 @@ first. Name real files. Point out the single most interesting piece of code.>
 
 ## Modernisation notes
 
-<Converted repos only. Short prose plus the existing Branches table, unchanged.>
+<Converted repos only. Optional short prose, then the branches table exactly as
+specified in readme.branches.instructions.md:>
 
-| Branch | Description | Instructions |
-|--------|-------------|--------------|
-| ... | ... | ... |
+Each branch represents a distinct modernisation effort, guided by a 4D skill or a repository instruction file.
+
+| Branch | Description | Guidance |
+|--------|-------------|----------|
+| [`<branch>`](../../tree/<branch>) | <one-line description> | [`<skill>`](https://github.com/miyako/skills/tree/main/4d-skills/skills/<skill>) or [<file>.instructions.md](.github/instructions/<file>.instructions.md) |
 
 ## References
 
@@ -82,8 +86,9 @@ first. Name real files. Point out the single most interesting piece of code.>
 
 2. **Keep, verbatim**:
    - All existing `<img>` screenshot tags, under `## Screenshots`
-   - The `## Branches` table rows and their instruction-file links (move under
-     `## Modernisation notes`)
+   - The branches table rows (move them under `## Modernisation notes`). Only
+     their Guidance links change: point them at the skill or the repo-local
+     instruction file as described in readme.branches.instructions.md
    - The blog post URL and original download URL (move into `## References`)
 
 3. **Every factual claim must come from the repo.** Read the `.4dm` method files,
@@ -98,7 +103,7 @@ first. Name real files. Point out the single most interesting piece of code.>
    use `--` rather than an em dash, straight quotes, no ellipsis character.
 
 6. **Restoration repos** (those whose README currently says
-   "restoration of vNN demo") have no `## Branches` table and no blog post.
+   "restoration of vNN demo") have no branches table and no blog post.
    For those: omit `## Modernisation notes`, and in `## References` link the 4D
    documentation page for the feature plus the `miyako/4d-hdi` index. Keep the
    existing badges and screenshots. The intro sentence uses "restored" wording.
