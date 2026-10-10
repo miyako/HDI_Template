@@ -1,16 +1,34 @@
-# macOS
+# Canonical 4D baseline: .agents/skills/4dproject/SKILL.md ("## .gitignore")
+
+# macOS / Windows
 .DS_Store
+ehthumbs.db
+Thumbs.db
 
 # 4D runtime / user data
-Data/
+[dD][aA][tT][aA]/
 Logs/
 userPreferences.*
 
-# 4D derived/cache
-Project/DerivedData/
+# 4D derived data and caches
+DerivedData/
 
-# Documentation (auto-generated)
-Documentation/
+# 4D components installed by the dependency manager
+Libraries/
 
-# Settings
+# Documentation/ is NOT ignored: it holds developer-written .md files attached to methods and forms.
+
+# Uncomment to ignore the 4D trash
+# Project/Trash
+
+# User settings (settings.4DSettings, Backup.4DSettings, directory.json, AIProviders.json).
+# HDI demos ship no shared user settings: they are machine-specific, so the folder is ignored.
+# Never commit API keys (e.g. Settings/AIProviders.json) whichever way this is handled.
 Settings/
+
+# Tools provisioned by the skills in .agents (4dtools). Do NOT ignore the whole tools/ folder.
+/tools/4dcatalog/
+/tools/4dform/
+/tools/4dlsp/
+/tools/4dlang/
+/tools/4dcli/
